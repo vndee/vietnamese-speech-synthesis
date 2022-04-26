@@ -15,7 +15,7 @@
 """MelGAN Config object."""
 
 
-from tensorflow_tts.configs import BaseConfig
+from common.configs import BaseConfig
 
 
 class MelGANGeneratorConfig(BaseConfig):

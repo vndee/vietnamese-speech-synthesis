@@ -15,15 +15,15 @@
 """Tacotron-2 Config object."""
 
 
-from tensorflow_tts.configs import BaseConfig
-from tensorflow_tts.processor.jsut import JSUT_SYMBOLS
-from tensorflow_tts.processor.ljspeech import LJSPEECH_SYMBOLS as lj_symbols
-from tensorflow_tts.processor.kss import KSS_SYMBOLS as kss_symbols
-from tensorflow_tts.processor.baker import BAKER_SYMBOLS as bk_symbols
-from tensorflow_tts.processor.libritts import LIBRITTS_SYMBOLS as lbri_symbols
-from tensorflow_tts.processor.ljspeechu import LJSPEECH_U_SYMBOLS as lju_symbols
-from tensorflow_tts.processor.synpaflex import SYNPAFLEX_SYMBOLS as synpaflex_symbols
-from tensorflow_tts.processor.jsut import JSUT_SYMBOLS as jsut_symbols
+from common.configs import BaseConfig
+from common.processor.jsut import JSUT_SYMBOLS
+from common.processor.ljspeech import LJSPEECH_SYMBOLS as lj_symbols
+from common.processor.kss import KSS_SYMBOLS as kss_symbols
+from common.processor.baker import BAKER_SYMBOLS as bk_symbols
+from common.processor.libritts import LIBRITTS_SYMBOLS as lbri_symbols
+from common.processor.ljspeechu import LJSPEECH_U_SYMBOLS as lju_symbols
+from common.processor.synpaflex import SYNPAFLEX_SYMBOLS as synpaflex_symbols
+from common.processor.jsut import JSUT_SYMBOLS as jsut_symbols
 
 
 class Tacotron2Config(BaseConfig):

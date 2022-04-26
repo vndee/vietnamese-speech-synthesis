@@ -314,7 +314,7 @@ def save_statistics_to_file(scaler_list, config):
         np.save(
             os.path.join(config["outdir"], f"stats{name}.npy"),
             stats.astype(np.float32),
-            allow_pickle=False,
+            allow_pickle=True,
         )
 
 

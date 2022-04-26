@@ -15,7 +15,7 @@
 """FastSpeech2 Config object."""
 
 
-from tensorflow_tts.configs import FastSpeechConfig
+from common.configs import FastSpeechConfig
 
 
 class FastSpeech2Config(FastSpeechConfig):

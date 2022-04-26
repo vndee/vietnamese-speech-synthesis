@@ -26,8 +26,8 @@ from pypinyin import Style
 from pypinyin.contrib.neutral_tone import NeutralToneWith5Mixin
 from pypinyin.converter import DefaultConverter
 from pypinyin.core import Pinyin
-from tensorflow_tts.processor import BaseProcessor
-from tensorflow_tts.utils.utils import PROCESSOR_FILE_NAME
+from common.processor import BaseProcessor
+from common.utils.utils import PROCESSOR_FILE_NAME
 
 _pad = ["pad"]
 _eos = ["eos"]

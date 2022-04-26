@@ -98,7 +98,7 @@ class CharactorDurationF0EnergyMelDataset(AbstractDataset):
             == len(duration_files)
             == len(f0_files)
             == len(energy_files)
-        ), f"Number of charactor, mel, duration, f0 and energy files are different"
+        ), f"Number of charactor, mel ({len(mel_files)}), charactor ({len(charactor_files)}), duration ({len(duration_files)}), f0 ({len(f0_files)}) and energy ({len(energy_files)}) files are different"
 
         if ".npy" in charactor_query:
             suffix = charactor_query[1:]

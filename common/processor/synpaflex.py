@@ -20,8 +20,8 @@ import re
 import numpy as np
 import soundfile as sf
 from dataclasses import dataclass
-from tensorflow_tts.processor import BaseProcessor
-from tensorflow_tts.utils import cleaners
+from common.processor import BaseProcessor
+from common.utils import cleaners
 
 _pad = "pad"
 _eos = "eos"

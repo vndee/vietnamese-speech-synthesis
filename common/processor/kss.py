@@ -20,10 +20,10 @@ import re
 import numpy as np
 import soundfile as sf
 from dataclasses import dataclass
-from tensorflow_tts.processor import BaseProcessor
-from tensorflow_tts.utils import cleaners
-from tensorflow_tts.utils.korean import symbols as KSS_SYMBOLS
-from tensorflow_tts.utils.utils import PROCESSOR_FILE_NAME
+from common.processor import BaseProcessor
+from common.utils import cleaners
+from common.utils.korean import symbols as KSS_SYMBOLS
+from common.utils.utils import PROCESSOR_FILE_NAME
 
 # Regular expression matching text enclosed in curly braces:
 _curly_re = re.compile(r"(.*?)\{(.+?)\}(.*)")

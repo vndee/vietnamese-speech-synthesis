@@ -18,7 +18,7 @@ import abc
 import yaml
 import os
 
-from tensorflow_tts.utils.utils import CONFIG_FILE_NAME
+from common.utils.utils import CONFIG_FILE_NAME
 
 
 class BaseConfig(abc.ABC):

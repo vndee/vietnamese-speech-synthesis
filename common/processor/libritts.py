@@ -23,8 +23,8 @@ from dataclasses import dataclass
 
 from g2p_en import g2p as grapheme_to_phonem
 
-from tensorflow_tts.processor.base_processor import BaseProcessor
-from tensorflow_tts.utils.utils import PROCESSOR_FILE_NAME
+from common.processor.base_processor import BaseProcessor
+from common.utils.utils import PROCESSOR_FILE_NAME
 
 g2p = grapheme_to_phonem.G2p()
 
