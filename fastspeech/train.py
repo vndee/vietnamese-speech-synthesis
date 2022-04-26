@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Train FastSpeech2."""
+"""Train FastSpeech."""
 
 import tensorflow as tf
 
@@ -20,42 +20,41 @@ physical_devices = tf.config.list_physical_devices("GPU")
 for i in range(len(physical_devices)):
     tf.config.experimental.set_memory_growth(physical_devices[i], True)
 
+import argparse
+import logging
+import os
 import sys
 
 sys.path.append(".")
 
-import argparse
-import logging
-import os
-
 import numpy as np
 import yaml
-from tqdm import tqdm
 
 import tensorflow_tts
-from fastspeech2.dataset import CharactorDurationF0EnergyMelDataset
-from fastspeech.train import FastSpeechTrainer
-from common.configs import FastSpeech2Config
-from common.models import TFFastSpeech2
+import tensorflow_tts.configs.fastspeech as FASTSPEECH_CONFIG
+from fastspeech.dataset import CharactorDurationMelDataset
+from common.models import TFFastSpeech
 from common.optimizers import AdamWeightDecay, WarmUp
 from common.trainers import Seq2SeqBasedTrainer
 from common.utils import calculate_2d_loss, calculate_3d_loss, return_strategy
 
 
-class FastSpeech2Trainer(Seq2SeqBasedTrainer):
-    """FastSpeech2 Trainer class based on FastSpeechTrainer."""
+class FastSpeechTrainer(Seq2SeqBasedTrainer):
+    """FastSpeech Trainer class based on Seq2SeqBasedTrainer."""
 
     def __init__(
         self, config, strategy, steps=0, epochs=0, is_mixed_precision=False,
     ):
         """Initialize trainer.
+
         Args:
             steps (int): Initial global steps.
             epochs (int): Initial global epochs.
             config (dict): Config dict loaded from yaml format configuration file.
             is_mixed_precision (bool): Use mixed precision or not.
+
         """
-        super(FastSpeech2Trainer, self).__init__(
+        super(FastSpeechTrainer, self).__init__(
             steps=steps,
             epochs=epochs,
             config=config,
@@ -63,16 +62,12 @@ class FastSpeech2Trainer(Seq2SeqBasedTrainer):
             is_mixed_precision=is_mixed_precision,
         )
         # define metrics to aggregates data and use tf.summary logs them
-        self.list_metrics_name = [
-            "duration_loss",
-            "f0_loss",
-            "energy_loss",
-            "mel_loss_before",
-            "mel_loss_after",
-        ]
+        self.list_metrics_name = ["duration_loss", "mel_loss_before", "mel_loss_after"]
         self.init_train_eval_metrics(self.list_metrics_name)
         self.reset_states_train()
         self.reset_states_eval()
+
+        self.config = config
 
     def compile(self, model, optimizer):
         super().compile(model, optimizer)
@@ -96,25 +91,19 @@ class FastSpeech2Trainer(Seq2SeqBasedTrainer):
             per_example_losses: per example losses for each GPU, shape [B]
             dict_metrics_losses: dictionary loss.
         """
-        mel_before, mel_after, duration_outputs, f0_outputs, energy_outputs = outputs
+        mel_before, mel_after, duration_outputs = outputs
 
         log_duration = tf.math.log(
             tf.cast(tf.math.add(batch["duration_gts"], 1), tf.float32)
         )
-        duration_loss = calculate_2d_loss(log_duration, duration_outputs, self.mse)
-        f0_loss = calculate_2d_loss(batch["f0_gts"], f0_outputs, self.mse)
-        energy_loss = calculate_2d_loss(batch["energy_gts"], energy_outputs, self.mse)
+        duration_loss = self.mse(log_duration, duration_outputs)
         mel_loss_before = calculate_3d_loss(batch["mel_gts"], mel_before, self.mae)
         mel_loss_after = calculate_3d_loss(batch["mel_gts"], mel_after, self.mae)
 
-        per_example_losses = (
-            duration_loss + f0_loss + energy_loss + mel_loss_before + mel_loss_after
-        )
+        per_example_losses = duration_loss + mel_loss_before + mel_loss_after
 
         dict_metrics_losses = {
             "duration_loss": duration_loss,
-            "f0_loss": f0_loss,
-            "energy_loss": energy_loss,
             "mel_loss_before": mel_loss_before,
             "mel_loss_after": mel_loss_after,
         }
@@ -158,7 +147,7 @@ class FastSpeech2Trainer(Seq2SeqBasedTrainer):
             mel_after = tf.reshape(mel_after, (-1, 80)).numpy()  # [length, 80]
 
             # plit figure and save it
-            utt_id = utt_ids[idx]
+            utt_id = utt_ids[idx].decode("utf-8")
             figname = os.path.join(dirname, f"{utt_id}.png")
             fig = plt.figure(figsize=(10, 8))
             ax1 = fig.add_subplot(311)
@@ -199,20 +188,6 @@ def main():
         "--use-norm", default=1, type=int, help="usr norm-mels for train or raw."
     )
     parser.add_argument(
-        "--f0-stat",
-        default="./dump/stats_f0.npy",
-        type=str,
-        required=True,
-        help="f0-stat path.",
-    )
-    parser.add_argument(
-        "--energy-stat",
-        default="./dump/stats_energy.npy",
-        type=str,
-        required=True,
-        help="energy-stat path.",
-    )
-    parser.add_argument(
         "--outdir", type=str, required=True, help="directory to save checkpoints."
     )
     parser.add_argument(
@@ -242,9 +217,8 @@ def main():
         default="",
         type=str,
         nargs="?",
-        help="pretrained weights .h5 file to load weights from. Auto-skips non-matching layers",
+        help="pretrained checkpoint file to load weights from. Auto-skips non-matching layers",
     )
-
     args = parser.parse_args()
 
     # return strategy
@@ -308,21 +282,21 @@ def main():
         charactor_query = "*-ids.npy"
         mel_query = "*-raw-feats.npy" if args.use_norm is False else "*-norm-feats.npy"
         duration_query = "*-durations.npy"
-        f0_query = "*-raw-f0.npy"
-        energy_query = "*-raw-energy.npy"
+        charactor_load_fn = np.load
+        mel_load_fn = np.load
+        duration_load_fn = np.load
     else:
         raise ValueError("Only npy are supported.")
 
     # define train/valid dataset
-    train_dataset = CharactorDurationF0EnergyMelDataset(
+    train_dataset = CharactorDurationMelDataset(
         root_dir=args.train_dir,
         charactor_query=charactor_query,
         mel_query=mel_query,
         duration_query=duration_query,
-        f0_query=f0_query,
-        energy_query=energy_query,
-        f0_stat=args.f0_stat,
-        energy_stat=args.energy_stat,
+        charactor_load_fn=charactor_load_fn,
+        mel_load_fn=mel_load_fn,
+        duration_load_fn=duration_load_fn,
         mel_length_threshold=mel_length_threshold,
     ).create(
         is_shuffle=config["is_shuffle"],
@@ -332,16 +306,14 @@ def main():
         * config["gradient_accumulation_steps"],
     )
 
-    valid_dataset = CharactorDurationF0EnergyMelDataset(
+    valid_dataset = CharactorDurationMelDataset(
         root_dir=args.dev_dir,
         charactor_query=charactor_query,
         mel_query=mel_query,
         duration_query=duration_query,
-        f0_query=f0_query,
-        energy_query=energy_query,
-        f0_stat=args.f0_stat,
-        energy_stat=args.energy_stat,
-        mel_length_threshold=mel_length_threshold,
+        charactor_load_fn=charactor_load_fn,
+        mel_load_fn=mel_load_fn,
+        duration_load_fn=duration_load_fn,
     ).create(
         is_shuffle=config["is_shuffle"],
         allow_cache=config["allow_cache"],
@@ -349,7 +321,7 @@ def main():
     )
 
     # define trainer
-    trainer = FastSpeech2Trainer(
+    trainer = FastSpeechTrainer(
         config=config,
         strategy=STRATEGY,
         steps=0,
@@ -359,11 +331,12 @@ def main():
 
     with STRATEGY.scope():
         # define model
-        fastspeech = TFFastSpeech2(
-            config=FastSpeech2Config(**config["fastspeech2_params"])
+        fastspeech = TFFastSpeech(
+            config=FASTSPEECH_CONFIG.FastSpeechConfig(**config["fastspeech_params"])
         )
         fastspeech._build()
         fastspeech.summary()
+
         if len(args.pretrained) > 1:
             fastspeech.load_weights(args.pretrained, by_name=True, skip_mismatch=True)
             logging.info(
