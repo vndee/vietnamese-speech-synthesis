@@ -1,5 +1,5 @@
 allow_cache: true
-batch_size: 32
+batch_size: 16
 config: ./tacotron2/conf/tacotron2.v1.yaml
 dev_dir: ./data/dump_25hours/valid/
 end_ratio_value: 0.0
@@ -58,7 +58,7 @@ tacotron2_params:
   prenet_units: 256
   reduction_factor: 1
 train_dir: ./data/dump_25hours/train/
-train_max_steps: 200000
+train_max_steps: 12000
 use_fal: false
 use_fixed_shapes: true
 use_norm: true

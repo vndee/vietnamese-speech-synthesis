@@ -46,7 +46,7 @@ fastspeech2_params:
 ###########################################################
 #                  DATA LOADER SETTING                    #
 ###########################################################
-batch_size: 16              # Batch size for each GPU with assuming that gradient_accumulation_steps == 1.
+batch_size: 8              # Batch size for each GPU with assuming that gradient_accumulation_steps == 1.
 remove_short_samples: true  # Whether to remove samples the length of which are less than batch_max_steps.
 allow_cache: true           # Whether to allow cache in dataset. If true, it requires cpu memory.
 mel_length_threshold: 32    # remove all targets has mel_length <= 32 
@@ -68,7 +68,7 @@ var_train_expr: null  # trainable variable expr (eg. 'embeddings|encoder|decoder
 ###########################################################
 #                    INTERVAL SETTING                     #
 ###########################################################
-train_max_steps: 200000               # Number of training steps.
+train_max_steps: 20000               # Number of training steps.
 save_interval_steps: 5000             # Interval steps to save checkpoint.
 eval_interval_steps: 500              # Interval steps to evaluate the network.
 log_interval_steps: 200               # Interval steps to record the training log.

@@ -1,5 +1,5 @@
 allow_cache: true
-batch_size: 16
+batch_size: 8
 config: ./fastspeech2/conf/fastspeech2.v1.yaml
 dev_dir: ./data/dump_25hours/valid/
 energy_stat: ./data/dump_25hours/stats_energy.npy
@@ -53,7 +53,7 @@ remove_short_samples: true
 resume: ''
 save_interval_steps: 5000
 train_dir: ./data/dump_25hours/train/
-train_max_steps: 200000
+train_max_steps: 20000
 use_norm: true
 var_train_expr: null
 verbose: 1

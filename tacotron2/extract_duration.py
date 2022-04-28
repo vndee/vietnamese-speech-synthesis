@@ -28,7 +28,7 @@ import tensorflow as tf
 import yaml
 from tqdm import tqdm
 
-from tacotron2.tacotron_dataset import CharactorMelDataset
+from tacotron2.dataset import CharactorMelDataset
 from common.configs import Tacotron2Config
 from common.models import TFTacotron2
 
@@ -48,7 +48,7 @@ def main():
     """Running extract tacotron-2 durations."""
     parser = argparse.ArgumentParser(
         description="Extract durations from charactor with trained Tacotron-2 "
-        "(See detail in tensorflow_tts/example/tacotron-2/extract_duration.py)."
+        "(See detail in common/example/tacotron-2/extract_duration.py)."
     )
     parser.add_argument(
         "--rootdir",
